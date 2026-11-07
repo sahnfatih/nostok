@@ -1,6 +1,9 @@
 // Trailing slashes would produce "//api/..." and break the byte-identical
-// match with the Partner-panel Redirect Address.
-const deployUrl = process.env.NEXT_PUBLIC_DEPLOY_URL?.replace(/\/+$/, '');
+// match with the Partner-panel Redirect Address. A missing scheme would send
+// "host/path" as redirect_uri and ikas answers "redirect_uri is not
+// whitelisted" — so bare hosts are upgraded to https:// automatically.
+const rawDeployUrl = process.env.NEXT_PUBLIC_DEPLOY_URL?.replace(/\/+$/, '') ?? '';
+const deployUrl = rawDeployUrl && !/^https?:\/\//i.test(rawDeployUrl) ? `https://${rawDeployUrl}` : rawDeployUrl;
 
 /**
  * Required server secrets fail fast at boot: a missing secret must never fall
