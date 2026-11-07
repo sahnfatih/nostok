@@ -16,6 +16,7 @@ import ScannerTab from '@/components/clearance/scanner-tab';
 import CampaignsTab from '@/components/clearance/campaigns-tab';
 import RulesTab from '@/components/clearance/rules-tab';
 import AnalyticsTab from '@/components/clearance/analytics-tab';
+import PopupTab from '@/components/clearance/popup-tab';
 import type { RuleApplyResult } from '@/app/api/ikas/rules/apply/route';
 
 export type WarehouseStock = {
@@ -104,6 +105,7 @@ export default function DashboardPage() {
   const [rules, setRules] = useState<ClearanceRule[]>([]);
   const [threshold, setThreshold] = useState(5);
   const [thresholdTouched, setThresholdTouched] = useState(false);
+  const [deadStockDays, setDeadStockDays] = useState(30);
   const [scanning, setScanning] = useState(false);
 
   // Close loader on mount
@@ -208,9 +210,24 @@ export default function DashboardPage() {
             setStoreName(merchantRes.data.data.merchantInfo.storeName);
           }
 
+          // Persistent settings first, so the initial scan uses the saved threshold
+          let savedThreshold = threshold;
+          try {
+            const settingsRes = await ApiRequests.ikas.getSettings(fetchedToken);
+            if (!cancelled && settingsRes.status === 200 && settingsRes.data?.data) {
+              const s = settingsRes.data.data.settings;
+              savedThreshold = s.stockThreshold;
+              setThreshold(s.stockThreshold);
+              setThresholdTouched(s.thresholdTouched);
+              setDeadStockDays(s.deadStockDays);
+            }
+          } catch (error) {
+            console.error('Error loading settings:', error);
+          }
+
           // Fetch all data in parallel
           await Promise.all([
-            fetchLowStock(fetchedToken, threshold),
+            fetchLowStock(fetchedToken, savedThreshold),
             fetchCampaigns(fetchedToken),
             fetchRules(fetchedToken),
           ]);
@@ -218,6 +235,14 @@ export default function DashboardPage() {
           // Let active auto-apply rules create campaigns in the background
           if (!cancelled) {
             void runAutoRules(fetchedToken);
+          }
+
+          // Inject the (inert) popup bootstrap script on first load so the
+          // storefront lifecycle is complete; renders nothing until published.
+          if (!cancelled) {
+            void ApiRequests.ikas.installPopupScript(fetchedToken).catch((error) => {
+              console.error('Popup script install failed:', error);
+            });
           }
         }
         setLoading(false);
@@ -233,16 +258,32 @@ export default function DashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Handle threshold change and rescan
+  // Handle threshold change and rescan (persisted per merchant)
   const handleThresholdChange = useCallback(
     (newThreshold: number) => {
       setThreshold(newThreshold);
       setThresholdTouched(true);
       if (token) {
         fetchLowStock(token, newThreshold);
+        ApiRequests.ikas
+          .saveSettings(token, { stockThreshold: newThreshold, thresholdTouched: true })
+          .catch((error) => console.error('Error saving threshold:', error));
       }
     },
     [token, fetchLowStock],
+  );
+
+  // Dead-stock aging threshold (persisted per merchant)
+  const handleDeadStockDaysChange = useCallback(
+    (days: number) => {
+      setDeadStockDays(days);
+      if (token) {
+        ApiRequests.ikas
+          .saveSettings(token, { deadStockDays: days })
+          .catch((error) => console.error('Error saving deadStockDays:', error));
+      }
+    },
+    [token],
   );
 
   // Handle campaign creation
@@ -457,6 +498,7 @@ export default function DashboardPage() {
                 )}
               </TabsTrigger>
               <TabsTrigger value="analytics">Analiz</TabsTrigger>
+              <TabsTrigger value="popup">Duyuru</TabsTrigger>
               <TabsTrigger value="rules">
                 <span className="sm:hidden">Kurallar</span>
                 <span className="hidden sm:inline">Otomatik kurallar</span>
@@ -514,7 +556,16 @@ export default function DashboardPage() {
         </TabsContent>
 
         <TabsContent value="analytics">
-          <AnalyticsTab token={token} threshold={threshold} />
+          <AnalyticsTab
+            token={token}
+            threshold={threshold}
+            deadStockDays={deadStockDays}
+            onDeadStockDaysChange={handleDeadStockDaysChange}
+          />
+        </TabsContent>
+
+        <TabsContent value="popup">
+          <PopupTab token={token} />
         </TabsContent>
 
         <TabsContent value="rules">

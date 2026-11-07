@@ -23,7 +23,10 @@ function CallbackContent() {
       const params = new URLSearchParams(searchParams.toString());
       // Set token and handle redirect logic
       await TokenHelpers.setToken(router, params);
-    })();
+    })().catch((error) => {
+      // 'redirectUrl-called' is the expected completion sentinel of setToken
+      if (error !== 'redirectUrl-called') console.error('Callback page error:', error);
+    });
   }, [router, searchParams]);
 
   // Show loading indicator while processing callback

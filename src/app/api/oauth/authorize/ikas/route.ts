@@ -3,6 +3,7 @@ import { getRedirectUri } from '@/helpers/api-helpers';
 import { getSession, setSession } from '@/lib/session';
 import { validateRequest } from '@/lib/validation';
 import { OAuthAPI } from '@ikas/admin-api-client';
+import { randomBytes } from 'crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import z from 'zod';
 
@@ -34,8 +35,8 @@ export async function GET(request: NextRequest) {
 
     const { storeName } = validation.data;
 
-    // Generate a random state string for CSRF protection
-    const state = Math.random().toFixed(16);
+    // Generate a random state string for CSRF protection (CSPRNG)
+    const state = randomBytes(32).toString('base64url');
 
     // Retrieve the current session and update it with state and storeName
     const session = await getSession();

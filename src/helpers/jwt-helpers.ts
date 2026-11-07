@@ -1,5 +1,6 @@
 import { JwtPayload, sign, verify } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import { config } from '@/globals/config';
 
 /**
  * JWT helper methods
@@ -12,7 +13,7 @@ export class JwtHelpers {
    */
   static verifyToken(token: string) {
     try {
-      return verify(token, process.env.CLIENT_SECRET || '', {}) as JwtPayload;
+      return verify(token, config.oauth.clientSecret, {}) as JwtPayload;
     } catch (e) {
       console.error('Error verifying token:', e);
       return;
@@ -26,7 +27,7 @@ export class JwtHelpers {
    * @param authorizedAppId Id of the app which is unique per store and per installation
    */
   static createToken(merchantId: string, authorizedAppId: string) {
-    return sign({}, process.env.CLIENT_SECRET || '', {
+    return sign({}, config.oauth.clientSecret, {
       expiresIn: '4h', // 4 Hours
       algorithm: 'HS256',
       subject: merchantId,

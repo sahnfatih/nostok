@@ -57,13 +57,20 @@ export function parseStoredVariants(raw: string | null): StoredCampaignVariant[]
   }
 }
 
+/**
+ * Writes sell + discount price for each variant.
+ *
+ * `buyPrice` is deliberately NOT sent: the field is optional in
+ * `UpdateProductVariantPricesInput`, and including it would overwrite the
+ * merchant's real buy price with whatever the last scan happened to see
+ * (often null or a stale value).
+ */
 async function writeVariantPrices(
   ikasClient: IkasClient,
   variants: Array<{
     variantId: string;
     productId: string;
     sellPrice: number;
-    buyPrice: number | null;
     discountPrice: number | null;
   }>,
 ): Promise<void> {
@@ -74,7 +81,6 @@ async function writeVariantPrices(
         variantId: v.variantId,
         price: {
           sellPrice: v.sellPrice,
-          buyPrice: v.buyPrice,
           discountPrice: v.discountPrice,
         },
       })),
@@ -96,7 +102,6 @@ export async function applyVariantDiscounts(ikasClient: IkasClient, variants: Ca
       variantId: v.variantId,
       productId: v.productId,
       sellPrice: v.sellPrice,
-      buyPrice: v.buyPrice,
       discountPrice: v.discountPrice,
     })),
   );
@@ -110,7 +115,6 @@ export async function restoreVariantPrices(ikasClient: IkasClient, variants: Cam
       variantId: v.variantId,
       productId: v.productId,
       sellPrice: v.sellPrice,
-      buyPrice: v.buyPrice,
       discountPrice: v.originalDiscountPrice,
     })),
   );

@@ -27,14 +27,15 @@ export class AuthTokenManager {
   }
   /**
    * Retrieve an AuthToken by its authorizedAppId.
-   * @param authorizedAppId - The ID of the authorized app.
-   * @returns The AuthToken if found, otherwise undefined.
+   * Rows marked deleted (app uninstalled) are treated as missing — ikas does
+   * not revoke the access token on uninstall, so this check is what stops the
+   * app from using a removed installation's token.
    */
   static async get(authorizedAppId: string): Promise<AuthToken | undefined> {
     const token = await prisma.authToken.findUnique({
       where: { authorizedAppId },
     });
-    return token ? this.toModel(token) : undefined;
+    return token && !token.deleted ? this.toModel(token) : undefined;
   }
 
   /**

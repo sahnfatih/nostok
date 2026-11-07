@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "prisma generate && next build",
+    "start": "prisma db push --skip-generate && next start",
     "lint": "eslint .",
     "codegen": "graphql-codegen --config src/lib/ikas-client/codegen.ts",
     "build:watch": "tsc --watch",

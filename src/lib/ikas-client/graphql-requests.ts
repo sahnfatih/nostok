@@ -17,6 +17,9 @@ export const GET_AUTHORIZED_APP = gql`
     getAuthorizedApp {
       id
       salesChannelId
+      storeAppId
+      deleted
+      scope
     }
   }
 `;
@@ -114,5 +117,46 @@ export const UPDATE_VARIANT_PRICES = gql`
 export const DELETE_CAMPAIGNS = gql`
   mutation deleteCampaigns($idList: [String!]!) {
     deleteCampaignList(idList: $idList)
+  }
+`;
+
+// â”€â”€â”€ Storefront JS scripts (announcement popup bootstrap) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+export const LIST_STOREFRONT = gql`
+  query listStorefront {
+    listStorefront {
+      id
+      name
+      salesChannelId
+    }
+  }
+`;
+
+export const CREATE_STOREFRONT_JS_SCRIPT = gql`
+  mutation createStorefrontJSScript($input: CreateStorefrontJSScriptInput!) {
+    createStorefrontJSScript(input: $input) {
+      id
+      name
+      storefrontId
+      isActive
+    }
+  }
+`;
+
+export const UPDATE_STOREFRONT_JS_SCRIPT = gql`
+  mutation updateStorefrontJSScript($input: UpdateStorefrontJSScriptInput!) {
+    updateStorefrontJSScript(input: $input) {
+      id
+      name
+      storefrontId
+      isActive
+    }
+  }
+`;
+
+// v2: no arguments — deletes every JS script this app has added to any storefront.
+export const DELETE_STOREFRONT_JS_SCRIPT = gql`
+  mutation deleteStorefrontJSScript {
+    deleteStorefrontJSScript
   }
 `;

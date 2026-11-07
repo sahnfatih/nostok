@@ -93,3 +93,9 @@ export const getRedirectUri = (host: string) => {
   // Use configured redirect URI as-is
   return config.oauth.redirectUri;
 };
+
+/**
+ * Public base URL of this app (tunnel host in dev, deploy URL in production).
+ * Used to build absolute storefront URLs, e.g. the popup script source.
+ */
+export const getPublicBaseUrl = (host: string) => new URL(getRedirectUri(host)).origin;

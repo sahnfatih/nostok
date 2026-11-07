@@ -15,7 +15,8 @@ export interface SessionData {
 }
 
 export async function getSession(): Promise<IronSession<SessionData>> {
-  const session = await getIronSession<SessionData>(await cookies(), { password: config.cookiePassword || '', cookieName: TOKEN_COOKIE || '' });
+  // config.cookiePassword is validated at boot (min 32 chars) — no empty fallback.
+  const session = await getIronSession<SessionData>(await cookies(), { password: config.cookiePassword, cookieName: TOKEN_COOKIE || '' });
   return session;
 }
 

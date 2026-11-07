@@ -1,5 +1,19 @@
 import { BaseGraphQLAPIClient, BaseGraphQLAPIClientOptions, APIResult } from '@ikas/admin-api-client';
 
+export enum StorefrontJSScriptContentTypeEnum {
+  FILE = "FILE",
+  SCRIPT = "SCRIPT"
+}
+
+export type CreateStorefrontJSScriptInput = {
+  contentType: StorefrontJSScriptContentTypeEnum;
+  fileName?: string;
+  isHighPriority?: boolean;
+  name: string;
+  scriptContent: string;
+  storefrontId: string;
+}
+
 export type NumberFilterInput = {
   eq?: number;
   gt?: number;
@@ -20,6 +34,16 @@ export type UpdateProductVariantPricesInputPrice = {
   buyPrice?: number;
   discountPrice?: number;
   sellPrice: number;
+}
+
+export type UpdateStorefrontJSScriptInput = {
+  contentType?: StorefrontJSScriptContentTypeEnum;
+  fileName?: string;
+  id: string;
+  isHighPriority?: boolean;
+  name?: string;
+  scriptContent?: string;
+  storefrontId?: string;
 }
 
 export type UpdateVariantPricesInput = {
@@ -51,6 +75,9 @@ export type GetAuthorizedAppQueryVariables = {}
 export type GetAuthorizedAppQueryData = {
   id: string;
   salesChannelId?: string;
+  storeAppId: string;
+  deleted: boolean;
+  scope: string;
 }
 
 export interface GetAuthorizedAppQuery {
@@ -160,6 +187,56 @@ export interface DeleteCampaignsMutation {
   deleteCampaignList: DeleteCampaignsMutationData;
 }
 
+export type ListStorefrontQueryVariables = {}
+
+export type ListStorefrontQueryData = Array<{
+  id: string;
+  name: string;
+  salesChannelId: string;
+}>
+
+export interface ListStorefrontQuery {
+  listStorefront: ListStorefrontQueryData;
+}
+
+export type CreateStorefrontJSScriptMutationVariables = {
+  input: CreateStorefrontJSScriptInput;
+}
+
+export type CreateStorefrontJSScriptMutationData = {
+  id: string;
+  name: string;
+  storefrontId: string;
+  isActive: boolean;
+}
+
+export interface CreateStorefrontJSScriptMutation {
+  createStorefrontJSScript: CreateStorefrontJSScriptMutationData;
+}
+
+export type UpdateStorefrontJSScriptMutationVariables = {
+  input: UpdateStorefrontJSScriptInput;
+}
+
+export type UpdateStorefrontJSScriptMutationData = {
+  id: string;
+  name: string;
+  storefrontId: string;
+  isActive: boolean;
+}
+
+export interface UpdateStorefrontJSScriptMutation {
+  updateStorefrontJSScript: UpdateStorefrontJSScriptMutationData;
+}
+
+export type DeleteStorefrontJSScriptMutationVariables = {}
+
+export type DeleteStorefrontJSScriptMutationData = boolean
+
+export interface DeleteStorefrontJSScriptMutation {
+  deleteStorefrontJSScript: DeleteStorefrontJSScriptMutationData;
+}
+
 export class GeneratedQueries {
   client: BaseGraphQLAPIClient<any>;
 
@@ -186,6 +263,9 @@ export class GeneratedQueries {
     getAuthorizedApp {
       id
       salesChannelId
+      storeAppId
+      deleted
+      scope
     }
   }
 `;
@@ -259,6 +339,19 @@ export class GeneratedQueries {
 `;
     return this.client.query<Partial<ListStockLocationsQuery>>({ query });
   }
+
+  async listStorefront(): Promise<APIResult<Partial<ListStorefrontQuery>>> {
+    const query = `
+  query listStorefront {
+    listStorefront {
+      id
+      name
+      salesChannelId
+    }
+  }
+`;
+    return this.client.query<Partial<ListStorefrontQuery>>({ query });
+  }
 }
 
 export class GeneratedMutations {
@@ -298,6 +391,43 @@ export class GeneratedMutations {
   }
 `;
     return this.client.mutate<Partial<DeleteCampaignsMutation>>({ mutation, variables });
+  }
+
+  async createStorefrontJSScript(variables: CreateStorefrontJSScriptMutationVariables): Promise<APIResult<Partial<CreateStorefrontJSScriptMutation>>> {
+    const mutation = `
+  mutation createStorefrontJSScript($input: CreateStorefrontJSScriptInput!) {
+    createStorefrontJSScript(input: $input) {
+      id
+      name
+      storefrontId
+      isActive
+    }
+  }
+`;
+    return this.client.mutate<Partial<CreateStorefrontJSScriptMutation>>({ mutation, variables });
+  }
+
+  async updateStorefrontJSScript(variables: UpdateStorefrontJSScriptMutationVariables): Promise<APIResult<Partial<UpdateStorefrontJSScriptMutation>>> {
+    const mutation = `
+  mutation updateStorefrontJSScript($input: UpdateStorefrontJSScriptInput!) {
+    updateStorefrontJSScript(input: $input) {
+      id
+      name
+      storefrontId
+      isActive
+    }
+  }
+`;
+    return this.client.mutate<Partial<UpdateStorefrontJSScriptMutation>>({ mutation, variables });
+  }
+
+  async deleteStorefrontJSScript(): Promise<APIResult<Partial<DeleteStorefrontJSScriptMutation>>> {
+    const mutation = `
+  mutation deleteStorefrontJSScript {
+    deleteStorefrontJSScript
+  }
+`;
+    return this.client.mutate<Partial<DeleteStorefrontJSScriptMutation>>({ mutation });
   }
 }
 

@@ -66,7 +66,8 @@ export async function GET(request: NextRequest) {
     );
 
     if (!tokenResponse.data) {
-      // Failed to get token
+      // Failed to get token — surface the upstream status for diagnosis (no secrets)
+      console.error('Token exchange failed:', tokenResponse.status ?? 'no status', JSON.stringify(tokenResponse).slice(0, 500));
       return NextResponse.json({ error: { statusCode: 500, message: 'Failed to retrieve token' } }, { status: 500 });
     }
 
@@ -105,8 +106,18 @@ export async function GET(request: NextRequest) {
     }
 
     // Extract necessary IDs and calculate token expiration date
-    const authorizedAppId = authorizedAppResponse.data.getAuthorizedApp.id!;
+    const authorizedApp = authorizedAppResponse.data.getAuthorizedApp;
+    const authorizedAppId = authorizedApp.id!;
     const merchantId = merchantResponse.data.getMerchant.id!;
+
+    // A token for a different app or a deleted authorization must not be stored
+    if (authorizedApp.deleted || (authorizedApp.storeAppId && authorizedApp.storeAppId !== config.oauth.clientId)) {
+      return NextResponse.json(
+        { error: { statusCode: 403, message: 'Authorization does not belong to this app' } },
+        { status: 403 },
+      );
+    }
+
     const expireDate = new Date(Date.now() + tokenResponse.data.expires_in * 1000).toISOString();
 
     // Build the final AuthToken object

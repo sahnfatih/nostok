@@ -75,3 +75,38 @@ model ClearanceCampaign {
 
   rule            ClearanceRule? @relation(fields: [ruleId], references: [id])
 }
+
+/// Storefront announcement popup designed in the app ("Duyuru" tab). One row
+/// per merchant; the injected storefront script fetches this config live.
+model AnnouncementPopup {
+  id            String    @id @default(uuid())
+  merchantId    String    @unique
+  status        String    @default("draft") // draft | published | paused
+  template      String    @default("modal") // modal | banner | corner
+  title         String    @default("")
+  body          String    @default("")
+  ctaLabel      String?
+  ctaUrl        String?
+  accentColor   String    @default("#6c47ff")
+  surface       String    @default("light") // light | dark | glass
+  image         Bytes?
+  imageMime     String?
+  startAt       DateTime?
+  endAt         DateTime?
+  targetDevices String    @default("all") // all | mobile | desktop
+  targetPaths   String    @default("[]") // JSON string[] of path prefixes; empty = every page
+  frequency     String    @default("once_per_day") // always | once_per_day | once_per_session | once_ever
+  scriptIds     String    @default("{}") // JSON map storefrontId -> StorefrontJSScript id
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+/// Per-merchant app settings that must survive page refreshes and devices.
+model MerchantSetting {
+  merchantId       String   @id
+  stockThreshold   Int      @default(5)
+  thresholdTouched Boolean  @default(false)
+  deadStockDays    Int      @default(30)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

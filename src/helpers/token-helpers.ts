@@ -114,7 +114,14 @@ export class TokenHelpers {
       
       // Store authorized app ID separately for reference
       sessionStorage.setItem('authorizedAppId', authorizedAppId);
-      
+
+      // Inside the panel iframe a top-level replace would nest a second Admin;
+      // navigate in place instead. Top-level installs keep the redirect.
+      if (window.self !== window.top) {
+        await router.replace('/dashboard');
+        return;
+      }
+
       // Redirect to the specified URL (typically back to the app)
       window.location.replace(redirectUrl);
       

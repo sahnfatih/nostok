@@ -6,6 +6,11 @@ import { ListCampaignsResponse, CreateCampaignResponse } from '../app/api/ikas/c
 import { UpdateCampaignResponse } from '../app/api/ikas/campaigns/[id]/route';
 import { ListRulesResponse } from '../app/api/ikas/rules/route';
 import { ApplyRulesResponse } from '../app/api/ikas/rules/apply/route';
+import { GetPopupResponse, SavePopupResponse } from '../app/api/ikas/popup/route';
+import { PublishPopupResponse } from '../app/api/ikas/popup/publish/route';
+import { InstallPopupScriptResponse } from '../app/api/ikas/popup/install/route';
+import { GetSettingsResponse, MerchantSettings } from '../app/api/ikas/settings/route';
+import type { PopupConfigInput } from './popup';
 import { ApiResponseType } from '../globals/constants';
 
 export async function makePostRequest<T>({ url, data, token }: { url: string; data?: unknown; token?: string }) {
@@ -31,6 +36,16 @@ export async function makeGetRequest<T>({ url, data, token }: { url: string; dat
 
 export async function makePatchRequest<T>({ url, data, token }: { url: string; data?: unknown; token?: string }) {
   return axios.patch<ApiResponseType<T>>(url, data, {
+    headers: token
+      ? {
+          Authorization: `JWT ${token}`,
+        }
+      : undefined,
+  });
+}
+
+export async function makePutRequest<T>({ url, data, token }: { url: string; data?: unknown; token?: string }) {
+  return axios.put<ApiResponseType<T>>(url, data, {
     headers: token
       ? {
           Authorization: `JWT ${token}`,
@@ -119,5 +134,22 @@ export const ApiRequests = {
     deleteRule: (token: string, id: string) => makeDeleteRequest<{ success: boolean }>({ url: `/api/ikas/rules/${id}`, token }),
     applyRules: (token: string, data?: { ruleId?: string }) =>
       makePostRequest<ApplyRulesResponse>({ url: '/api/ikas/rules/apply', token, data }),
+
+    // Announcement popup (storefront duyuru modalı)
+    getPopup: (token: string) => makeGetRequest<GetPopupResponse>({ url: '/api/ikas/popup', token }),
+    savePopup: (token: string, data: PopupConfigInput) => makePutRequest<SavePopupResponse>({ url: '/api/ikas/popup', token, data }),
+    uploadPopupImage: (token: string, dataUrl: string) =>
+      makePostRequest<SavePopupResponse>({ url: '/api/ikas/popup/image', token, data: { dataUrl } }),
+    deletePopupImage: (token: string) => makeDeleteRequest<SavePopupResponse>({ url: '/api/ikas/popup/image', token }),
+    publishPopup: (token: string) => makePostRequest<PublishPopupResponse>({ url: '/api/ikas/popup/publish', token }),
+    unpublishPopup: (token: string) => makeDeleteRequest<SavePopupResponse>({ url: '/api/ikas/popup/publish', token }),
+    deletePopup: (token: string) => makeDeleteRequest<{ success: boolean }>({ url: '/api/ikas/popup', token }),
+    installPopupScript: (token: string) =>
+      makePostRequest<InstallPopupScriptResponse>({ url: '/api/ikas/popup/install', token }),
+
+    // Persistent merchant settings (thresholds)
+    getSettings: (token: string) => makeGetRequest<GetSettingsResponse>({ url: '/api/ikas/settings', token }),
+    saveSettings: (token: string, data: Partial<MerchantSettings>) =>
+      makePutRequest<GetSettingsResponse>({ url: '/api/ikas/settings', token, data }),
   },
 };

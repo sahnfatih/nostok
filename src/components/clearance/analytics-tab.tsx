@@ -25,15 +25,16 @@ import type { AnalyticsResponse, DeadStockVariant } from '@/app/api/ikas/analyti
 interface AnalyticsTabProps {
   token: string;
   threshold: number;
+  deadStockDays: number;
+  onDeadStockDaysChange: (days: number) => void;
 }
 
 const PAGE_SIZE = 10;
 
-export default function AnalyticsTab({ token, threshold }: AnalyticsTabProps) {
+export default function AnalyticsTab({ token, threshold, deadStockDays, onDeadStockDaysChange }: AnalyticsTabProps) {
   const [data, setData] = useState<AnalyticsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [deadStockDays, setDeadStockDays] = useState(30);
   const [page, setPage] = useState(1);
 
   const fetchAnalytics = useCallback(async () => {
@@ -342,7 +343,7 @@ export default function AnalyticsTab({ token, threshold }: AnalyticsTabProps) {
               <NumberStepper
                 label="Ölü stok gün eşiği"
                 value={deadStockDays}
-                onValueChange={setDeadStockDays}
+                onValueChange={onDeadStockDaysChange}
                 min={7}
                 max={365}
               />
