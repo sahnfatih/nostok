@@ -1,6 +1,38 @@
 import { BaseGraphQLAPIClient, BaseGraphQLAPIClientOptions, APIResult } from '@ikas/admin-api-client';
 
+export type NumberFilterInput = {
+  eq?: number;
+  gt?: number;
+  gte?: number;
+  in?: Array<number>;
+  lt?: number;
+  lte?: number;
+  ne?: number;
+  nin?: Array<number>;
+}
 
+export type PaginationInput = {
+  limit?: number;
+  page?: number;
+}
+
+export type UpdateProductVariantPricesInputPrice = {
+  buyPrice?: number;
+  discountPrice?: number;
+  sellPrice: number;
+}
+
+export type UpdateVariantPricesInput = {
+  priceListId?: string;
+  variantPriceInputs: Array<UpdateVariantPricesInputVariantPrice>;
+}
+
+export type UpdateVariantPricesInputVariantPrice = {
+  deleted?: boolean;
+  price: UpdateProductVariantPricesInputPrice;
+  productId: string;
+  variantId: string;
+}
 
 export type GetMerchantQueryVariables = {}
 
@@ -23,6 +55,109 @@ export type GetAuthorizedAppQueryData = {
 
 export interface GetAuthorizedAppQuery {
   getAuthorizedApp: GetAuthorizedAppQueryData;
+}
+
+export type ListProductsQueryVariables = {
+  pagination?: PaginationInput;
+  totalStock?: NumberFilterInput;
+}
+
+export type ListProductsQueryData = {
+  count: number;
+  hasNext: boolean;
+  limit: number;
+  page: number;
+  data: Array<{
+  id: string;
+  name: string;
+  totalStock?: number;
+  createdAt?: number;
+  updatedAt?: number;
+  categories?: Array<{
+  id: string;
+  name: string;
+}>;
+  brand?: {
+  id: string;
+  name: string;
+};
+  variants: Array<{
+  id: string;
+  sku?: string;
+  isActive: boolean;
+  sellIfOutOfStock?: boolean;
+  createdAt?: number;
+  updatedAt?: number;
+  prices: Array<{
+  sellPrice: number;
+  discountPrice?: number;
+  buyPrice?: number;
+  currencyCode?: string;
+  currencySymbol?: string;
+}>;
+  stocks?: Array<{
+  id: string;
+  stockCount: number;
+  stockLocationId: string;
+}>;
+  variantValues?: Array<{
+  variantTypeId: string;
+  variantTypeName: string;
+  variantValueId: string;
+  variantValueName: string;
+}>;
+}>;
+}>;
+}
+
+export interface ListProductsQuery {
+  listProduct: ListProductsQueryData;
+}
+
+export type ListStockLocationsQueryVariables = {}
+
+export type ListStockLocationsQueryData = Array<{
+  id: string;
+  name: string;
+  description?: string;
+}>
+
+export interface ListStockLocationsQuery {
+  listStockLocation: ListStockLocationsQueryData;
+}
+
+export type UpdateVariantPricesMutationVariables = {
+  input: UpdateVariantPricesInput;
+}
+
+export type UpdateVariantPricesMutationData = {
+  errors?: Array<{
+  errorCode: string;
+  inputArrayIndex: number;
+  inputData: {
+  productId: string;
+  variantId: string;
+  price: {
+  sellPrice: number;
+  discountPrice?: number;
+  buyPrice?: number;
+};
+};
+}>;
+}
+
+export interface UpdateVariantPricesMutation {
+  updateVariantPrices: UpdateVariantPricesMutationData;
+}
+
+export type DeleteCampaignsMutationVariables = {
+  idList: string;
+}
+
+export type DeleteCampaignsMutationData = boolean
+
+export interface DeleteCampaignsMutation {
+  deleteCampaignList: DeleteCampaignsMutationData;
 }
 
 export class GeneratedQueries {
@@ -56,13 +191,123 @@ export class GeneratedQueries {
 `;
     return this.client.query<Partial<GetAuthorizedAppQuery>>({ query });
   }
+
+  async listProducts(variables: ListProductsQueryVariables): Promise<APIResult<Partial<ListProductsQuery>>> {
+    const query = `
+  query listProducts($pagination: PaginationInput, $totalStock: NumberFilterInput) {
+    listProduct(pagination: $pagination, totalStock: $totalStock) {
+      count
+      hasNext
+      limit
+      page
+      data {
+        id
+        name
+        totalStock
+        createdAt
+        updatedAt
+        categories {
+          id
+          name
+        }
+        brand {
+          id
+          name
+        }
+        variants {
+          id
+          sku
+          isActive
+          sellIfOutOfStock
+          createdAt
+          updatedAt
+          prices {
+            sellPrice
+            discountPrice
+            buyPrice
+            currencyCode
+            currencySymbol
+          }
+          stocks {
+            id
+            stockCount
+            stockLocationId
+          }
+          variantValues {
+            variantTypeId
+            variantTypeName
+            variantValueId
+            variantValueName
+          }
+        }
+      }
+    }
+  }
+`;
+    return this.client.query<Partial<ListProductsQuery>>({ query, variables });
+  }
+
+  async listStockLocations(): Promise<APIResult<Partial<ListStockLocationsQuery>>> {
+    const query = `
+  query listStockLocations {
+    listStockLocation {
+      id
+      name
+      description
+    }
+  }
+`;
+    return this.client.query<Partial<ListStockLocationsQuery>>({ query });
+  }
+}
+
+export class GeneratedMutations {
+  client: BaseGraphQLAPIClient<any>;
+
+  constructor(client: BaseGraphQLAPIClient<any>) {
+    this.client = client;
+  }
+
+  async updateVariantPrices(variables: UpdateVariantPricesMutationVariables): Promise<APIResult<Partial<UpdateVariantPricesMutation>>> {
+    const mutation = `
+  mutation updateVariantPrices($input: UpdateVariantPricesInput!) {
+    updateVariantPrices(input: $input) {
+      errors {
+        errorCode
+        inputArrayIndex
+        inputData {
+          productId
+          variantId
+          price {
+            sellPrice
+            discountPrice
+            buyPrice
+          }
+        }
+      }
+    }
+  }
+`;
+    return this.client.mutate<Partial<UpdateVariantPricesMutation>>({ mutation, variables });
+  }
+
+  async deleteCampaigns(variables: DeleteCampaignsMutationVariables): Promise<APIResult<Partial<DeleteCampaignsMutation>>> {
+    const mutation = `
+  mutation deleteCampaigns($idList: [String!]!) {
+    deleteCampaignList(idList: $idList)
+  }
+`;
+    return this.client.mutate<Partial<DeleteCampaignsMutation>>({ mutation, variables });
+  }
 }
 
 export class ikasAdminGraphQLAPIClient<TokenData> extends BaseGraphQLAPIClient<TokenData> {
   queries: GeneratedQueries;
+  mutations: GeneratedMutations;
 
   constructor(options: BaseGraphQLAPIClientOptions<TokenData>) {
     super(options);
     this.queries = new GeneratedQueries(this);
+    this.mutations = new GeneratedMutations(this);
   }
 }

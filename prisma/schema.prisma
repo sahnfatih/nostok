@@ -27,3 +27,51 @@ model AuthToken {
   refreshToken    String
   scope           String?
 }
+
+model InventorySnapshot {
+  id                  String   @id @default(uuid())
+  merchantId          String
+  date                String
+  totalVariants       Int
+  totalStockUnits     Int
+  totalInventoryValue Float
+  lowStockCount       Int
+  outOfStockCount     Int
+  deadStockCount      Int
+  deadStockValue      Float
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@unique([merchantId, date])
+}
+
+model ClearanceRule {
+  id              String   @id @default(uuid())
+  merchantId      String
+  name            String
+  stockThreshold  Int
+  discountPercent Float
+  isActive        Boolean  @default(true)
+  autoApply       Boolean  @default(false)
+  categoryFilter  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  campaigns       ClearanceCampaign[]
+}
+
+model ClearanceCampaign {
+  id              String   @id @default(uuid())
+  merchantId      String
+  campaignId      String   @unique
+  ruleId          String?
+  title           String
+  discountPercent Float
+  variantIds      String
+  variants        String?
+  status          String   @default("active")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  rule            ClearanceRule? @relation(fields: [ruleId], references: [id])
+}
