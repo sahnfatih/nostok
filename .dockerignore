@@ -1,0 +1,32 @@
+# Dependencies & build output (rebuilt inside the image)
+node_modules
+.next
+out
+build
+
+# Prisma client generated on Windows must not leak into the Linux image
+src/generated
+
+# Local database files — Railway keeps its own on the /data volume
+prisma/dev.db
+prisma/*.db
+prisma/*.db-journal
+
+# Secrets stay in Railway's Variables screen
+.env
+.env.*
+!.env.example
+
+# VCS & tooling
+.git
+.gitignore
+.vscode
+.idea
+.ikas
+.mimocode
+*.log
+*.tsbuildinfo
+next-env.d.ts
+DEPLOY.md
+Dockerfile
+.dockerignore
