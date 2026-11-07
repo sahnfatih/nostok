@@ -8,8 +8,11 @@ RUN corepack enable
 
 WORKDIR /app
 
-# Dependencies first so Docker can cache this layer
-COPY package.json pnpm-lock.yaml ./
+# Dependencies first so Docker can cache this layer.
+# pnpm-workspace.yaml must come along: pnpm 10 keeps `overrides` /
+# `onlyBuiltDependencies` there, and --frozen-lockfile compares them
+# against the lockfile.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN pnpm install --frozen-lockfile
 
 # Sources. .dockerignore keeps node_modules/.next/.env and the Windows-built
