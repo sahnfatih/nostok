@@ -13,14 +13,22 @@ function requireEnv(name: string, value: string | undefined, minLength = 1): str
   return value;
 }
 
-const clientSecret = requireEnv('CLIENT_SECRET', process.env.CLIENT_SECRET);
-const cookiePassword = requireEnv('SECRET_COOKIE_PASSWORD', process.env.SECRET_COOKIE_PASSWORD, 32);
+const clientSecretName = 'CLIENT_SECRET';
+const cookiePasswordName = 'SECRET_COOKIE_PASSWORD';
 
 export const config = {
   // Graph API and Store config
   graphApiUrl: process.env.NEXT_PUBLIC_GRAPH_API_URL,
   adminUrl: process.env.NEXT_PUBLIC_ADMIN_URL,
-  cookiePassword,
+
+  /**
+   * Secrets are validated on first USE (lazy getters), not at module load:
+   * `next build` imports route modules without runtime env, and a misconfigured
+   * deploy must still fail immediately — with a clear message — on first use.
+   */
+  get cookiePassword(): string {
+    return requireEnv(cookiePasswordName, process.env.SECRET_COOKIE_PASSWORD, 32);
+  },
 
   // OAuth configuration — keep in sync with Partner panel › Uygulama Yetkileri
   // (least privilege: products + inventories for scanning/prices, campaigns for
@@ -28,7 +36,9 @@ export const config = {
   oauth: {
     scope: 'read_products,write_products,read_inventories,write_inventories,write_campaigns,write_storefronts',
     clientId: process.env.NEXT_PUBLIC_CLIENT_ID,
-    clientSecret,
+    get clientSecret(): string {
+      return requireEnv(clientSecretName, process.env.CLIENT_SECRET);
+    },
     redirectUri: `${deployUrl}/api/oauth/callback/ikas`,
   }
 };
